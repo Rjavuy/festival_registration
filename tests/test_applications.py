@@ -2,32 +2,29 @@ from datetime import date
 
 import pytest
 
-from applications import (
+from models import Application, Festival, Participant
+from models.applications import (
     STATUS_APPROVED,
     STATUS_CANCELLED,
     STATUS_SUBMITTED,
     cancel_application,
+    change_application_status,
     check_application_possibility,
     create_application,
     get_statistics,
-    set_application_status,
 )
-from festivals import add_festival
-from participants import add_participant
 
 TODAY = date(2026, 9, 27)
 
 
-def make_data(max_places=100):
-    festivals = {}
-    participants = {}
-    add_festival(festivals, "Фестиваль искусств", date(2026, 12, 15),
-                 max_places)
-    add_participant(participants, "Иван", "ivan@example.com",
-                    "+79161234567", "2000-05-15", TODAY)
-    add_participant(participants, "Анна", "anna@example.com",
-                    "89031112233", "2004-11-02", TODAY)
-    return festivals, participants
+def make_objects(max_places=100):
+    festival = Festival(1, "Фестиваль искусств", date(2026, 12, 15),
+                        max_places)
+    ivan = Participant(1, "Иван", "ivan@example.com", "+79161234567",
+                       date(2000, 5, 15))
+    anna = Participant(2, "Анна", "anna@example.com", "89031112233",
+                       date(2004, 11, 2))
+    return festival, ivan, anna
 
 
 def test_check_application_possibility():
@@ -40,55 +37,69 @@ def test_check_application_possibility():
         24, festival_date, TODAY, 100, 100)
 
 
+def test_application_creation():
+    festival, ivan, _ = make_objects()
+    application = Application(1, festival, ivan)
+    assert application.festival is festival
+    assert application.participant is ivan
+    assert application.status == STATUS_SUBMITTED
+    assert application.is_active
+    assert str(application) == (
+        "Заявка №1: Иван -> Фестиваль искусств [Отправлена]"
+    )
+
+
+def test_application_cancel():
+    festival, ivan, _ = make_objects()
+    application = Application(1, festival, ivan)
+    application.cancel()
+    assert application.status == STATUS_CANCELLED
+    assert not application.is_active
+    with pytest.raises(ValueError):
+        application.approve()
+
+
+def test_status_is_read_only():
+    festival, ivan, _ = make_objects()
+    application = Application(1, festival, ivan)
+    with pytest.raises(AttributeError):
+        application.status = STATUS_APPROVED
+
+
 def test_create_application():
-    festivals, participants = make_data()
+    festival, ivan, _ = make_objects()
     applications = []
-    application = create_application(
-        applications, festivals, participants, 1, 1, TODAY)
-    assert application["status"] == STATUS_SUBMITTED
+    application = create_application(applications, festival, ivan, TODAY)
     assert applications == [application]
+    assert application.participant.email == "ivan@example.com"
 
 
 def test_duplicate_application_forbidden():
-    festivals, participants = make_data()
+    festival, ivan, _ = make_objects()
     applications = []
-    create_application(applications, festivals, participants, 1, 1, TODAY)
-    with pytest.raises(ValueError):
-        create_application(
-            applications, festivals, participants, 1, 1, TODAY)
+    create_application(applications, festival, ivan, TODAY)
+    with pytest.raises(ValueError, match="уже подал"):
+        create_application(applications, festival, ivan, TODAY)
 
 
-def test_no_free_places():
-    festivals, participants = make_data(max_places=1)
+def test_cancelled_application_frees_place():
+    festival, ivan, anna = make_objects(max_places=1)
     applications = []
-    create_application(applications, festivals, participants, 1, 1, TODAY)
+    create_application(applications, festival, ivan, TODAY)
     with pytest.raises(ValueError, match="мест нет"):
-        create_application(
-            applications, festivals, participants, 2, 1, TODAY)
-
-
-def test_unknown_festival():
-    festivals, participants = make_data()
-    with pytest.raises(KeyError):
-        create_application([], festivals, participants, 1, 99, TODAY)
-
-
-def test_cancel_frees_place():
-    festivals, participants = make_data(max_places=1)
-    applications = []
-    create_application(applications, festivals, participants, 1, 1, TODAY)
+        create_application(applications, festival, anna, TODAY)
     assert cancel_application(applications, 1)
-    assert applications[0]["status"] == STATUS_CANCELLED
-    create_application(applications, festivals, participants, 2, 1, TODAY)
+    create_application(applications, festival, anna, TODAY)
     assert len(applications) == 2
 
 
 def test_statistics():
-    festivals, participants = make_data()
+    festival, ivan, anna = make_objects()
     applications = []
-    create_application(applications, festivals, participants, 1, 1, TODAY)
-    create_application(applications, festivals, participants, 2, 1, TODAY)
-    set_application_status(applications, 1, STATUS_APPROVED)
+    create_application(applications, festival, ivan, TODAY)
+    create_application(applications, festival, anna, TODAY)
+    assert change_application_status(applications, 1, Application.approve)
+    assert not change_application_status(applications, 99, Application.reject)
     assert get_statistics(applications) == {
         STATUS_APPROVED: 1,
         STATUS_SUBMITTED: 1,

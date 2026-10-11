@@ -14,16 +14,16 @@
 ## Предметная область
 
 Организация и проведение массовых мероприятий (фестивалей).
-
-Основные сущности: фестиваль, участник, заявка, статус заявки.
+Основные объекты: фестиваль, участник, заявка.
 
 Правила подачи заявки:
 
 - участнику должно быть не меньше 14 лет;
 - заявку можно подать не позже даты проведения фестиваля;
-- на фестивале должны быть свободные места (их занимают заявки со статусами
-  «Отправлена» и «Одобрена»);
-- участник не может подать две активные заявки на один фестиваль.
+- на фестивале должны быть свободные места (их занимают активные заявки –
+  со статусами «Отправлена» и «Одобрена»);
+- участник не может подать две активные заявки на один фестиваль;
+- отменённая или отклонённая заявка не занимает место.
 
 ## Возможности
 
@@ -35,9 +35,84 @@
 - поиск участника по имени или email;
 - подача заявки с проверкой возможности участия;
 - одобрение и отклонение заявки организатором;
-- отмена заявки (запись сохраняется со статусом «Отменена»);
+- отмена заявки (заявка остаётся в списке со статусом «Отменена»);
 - статистика заявок по статусам;
 - сохранение данных в JSON между запусками.
+
+## Основные классы
+
+### Festival – фестиваль (`models/festivals.py`)
+
+Атрибуты: `id`, `name`, `festival_date`, `max_places`.
+
+Методы:
+
+- `is_registration_open(current_date)` – принимаются ли заявки на дату;
+- `has_free_places(taken_places)` – остались ли свободные места;
+- `validate_max_places()` – `@staticmethod`, проверка количества мест;
+- `__str__()` – строковое представление.
+
+### Participant – участник (`models/participants.py`)
+
+Атрибуты: `id`, `name`, `email`, `phone`, `birth_date`.
+
+Методы:
+
+- `age_on(on_date)` – возраст участника на дату;
+- `from_data(data)` – `@classmethod`, создание объекта из данных JSON;
+- `__str__()` – строковое представление.
+
+### Application – заявка (`models/applications.py`)
+
+Атрибуты: `id`, `festival` (объект `Festival`), `participant`
+(объект `Participant`), `status`.
+
+Статус хранится в закрытом атрибуте `_status` и доступен только для чтения
+через `@property status` (инкапсуляция). Изменить его можно только методами:
+
+- `approve()` – одобрить;
+- `reject()` – отклонить;
+- `cancel()` – отменить;
+- `is_active` – `@property`, занимает ли заявка место;
+- `__str__()` – строковое представление.
+
+## Взаимодействие объектов
+
+```text
+Application
+├── festival    → Festival
+├── participant → Participant
+└── status
+```
+
+Заявка хранит ссылки на объекты фестиваля и участника, поэтому их данные
+доступны напрямую: `application.festival.name`,
+`application.participant.email`. Коллекции приложения:
+`List[Festival]`, `List[Participant]`, `List[Application]`.
+
+Функции работы с коллекциями остаются обычными функциями модулей:
+`add_festival()`, `find_festivals()`, `find_festival_by_id()`,
+`filter_upcoming_festivals()`, `sort_festivals()`, `add_participant()`,
+`find_participants()`, `find_participant_by_id()`, `create_application()`,
+`find_application_by_id()`, `change_application_status()`,
+`cancel_application()`, `count_taken_places()`, `get_statistics()`.
+Функция `check_application_possibility()` из ПР1 сохранена и используется
+при создании заявки.
+
+## Хранение данных
+
+Данные хранятся в `data/festivals.json`, `data/participants.json`,
+`data/applications.json`. При загрузке записи JSON преобразуются в объекты,
+при сохранении – обратно в словари (модуль `storage.py`). В файле заявок
+вместо объектов хранятся идентификаторы `festival_id` и `participant_id`;
+при загрузке по ним восстанавливаются ссылки на объекты.
+
+```json
+{"id": 1, "festival_id": 1, "participant_id": 1, "status": "Одобрена"}
+```
+
+Отсутствующий или повреждённый файл и некорректные записи не приводят к
+аварийному завершению программы.
 
 ## Структура проекта
 
@@ -46,99 +121,51 @@ festival_registration/
 ├── README.md
 ├── requirements.txt
 ├── main.py            – точка запуска, меню и пользовательские сценарии
-├── festivals.py       – функции работы с фестивалями
-├── participants.py    – функции работы с участниками
-├── applications.py    – подача, проверка и обработка заявок
+├── storage.py         – загрузка и сохранение: JSON <-> объекты
 ├── validators.py      – проверка email, телефона, даты рождения (из ПР1)
-├── storage.py         – загрузка и сохранение JSON-файлов
 ├── utils.py           – безопасный ввод и вспомогательные функции
+├── models/
+│   ├── __init__.py
+│   ├── festivals.py     – класс Festival и функции фестивалей
+│   ├── participants.py  – класс Participant и функции участников
+│   └── applications.py  – класс Application и функции заявок
 ├── data/
 │   ├── festivals.json
 │   ├── participants.json
 │   └── applications.json
-└── tests/             – автоматизированные тесты pytest
-```
-
-## Функции проекта
-
-| Модуль | Функции |
-|---|---|
-| `main.py` | `main()`, `show_festivals()`, `show_participants()`, `show_applications()`, `show_statistics()`, `register_participant()`, `submit_application()`, `review_application()` |
-| `festivals.py` | `add_festival()`, `find_festivals()`, `filter_upcoming_festivals()` (генератор), `sort_festivals()` (lambda) |
-| `participants.py` | `add_participant()`, `find_participants()` |
-| `applications.py` | `check_application_possibility()` (из ПР1), `count_taken_places()`, `has_active_application()`, `create_application()`, `find_application()`, `set_application_status()`, `cancel_application()`, `get_statistics()` |
-| `validators.py` | `validate_email()`, `validate_phone()`, `validate_birth_date()` (из ПР1) |
-| `storage.py` | `load_list()` / `save_list()`, `load_festivals()` / `save_festivals()`, `load_participants()` / `save_participants()`, `load_applications()` / `save_applications()` |
-| `utils.py` | `input_text()`, `input_int()`, `input_date()`, `parse_date()`, `calculate_age()`, `next_id()` |
-
-## Формат данных
-
-В программе фестивали и участники хранятся в словарях `{id: данные}`,
-заявки – в списке словарей. В файлах данные хранятся списками,
-даты – в формате ISO (`ГГГГ-ММ-ДД`).
-
-`data/festivals.json`:
-
-```json
-[
-    {"id": 1, "name": "Городской фестиваль искусств",
-     "festival_date": "2026-12-15", "max_places": 100}
-]
-```
-
-`data/participants.json`:
-
-```json
-[
-    {"id": 1, "name": "Иван Петров", "email": "ivan.petrov@example.com",
-     "phone": "+79161234567", "birth_date": "2000-05-15"}
-]
-```
-
-`data/applications.json`:
-
-```json
-[
-    {"id": 1, "festival_id": 1, "participant_id": 1, "status": "Одобрена"}
-]
-```
-
-Если файл отсутствует или повреждён, программа не завершается аварийно:
-выводится сообщение и используется пустой набор данных.
-
-## Требования
-
-- Python 3.10+;
-- pytest;
-- flake8.
-
-Установка зависимостей:
-
-```text
-pip install -r requirements.txt
+└── tests/
+    ├── test_festivals.py
+    ├── test_participants.py
+    ├── test_applications.py
+    ├── test_storage.py
+    └── test_validators.py
 ```
 
 ## Запуск программы
 
 ```text
+pip install -r requirements.txt
 python main.py
 ```
 
-## Запуск тестов
+## Тестирование
 
 ```text
-pytest
+pytest -v
 ```
+
+Тесты проверяют создание объектов и их атрибуты, методы классов, строковое
+представление, операции с коллекциями, связь заявки с фестивалем и
+участником, правила подачи заявки и преобразование JSON <-> объекты.
 
 ## Проверка качества кода
 
 ```text
-flake8
+flake8 .
 ```
 
 ## План развития
 
-- ПР3 – переход к объектной модели (классы фестиваля, участника, заявки);
 - веб-приложение на Django;
 - подключение базы данных;
 - разработка API;
