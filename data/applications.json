@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "festival_id": 1,
+        "participant_id": 1,
+        "status": "Одобрена"
+    },
+    {
+        "id": 2,
+        "festival_id": 1,
+        "participant_id": 2,
+        "status": "Отправлена"
+    },
+    {
+        "id": 3,
+        "festival_id": 3,
+        "participant_id": 1,
+        "status": "Отправлена"
+    },
+    {
+        "id": 4,
+        "festival_id": 3,
+        "participant_id": 3,
+        "status": "Отправлена"
+    },
+    {
+        "id": 5,
+        "festival_id": 2,
+        "participant_id": 3,
+        "status": "Отменена"
+    }
+]

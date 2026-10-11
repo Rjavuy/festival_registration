@@ -6,3 +6,7 @@ __pycache__/
 .vscode/
 *.log
 .pytest_cache/
+# Файлы заданий и отчёты
+*.pdf
+*.docx
+reports/

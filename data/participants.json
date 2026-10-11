@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "name": "Иван Петров",
+        "email": "ivan.petrov@example.com",
+        "phone": "+79161234567",
+        "birth_date": "2000-05-15"
+    },
+    {
+        "id": 2,
+        "name": "Анна Смирнова",
+        "email": "anna.smirnova@example.com",
+        "phone": "89031112233",
+        "birth_date": "2004-11-02"
+    },
+    {
+        "id": 3,
+        "name": "Олег Кузнецов",
+        "email": "oleg.k@example.com",
+        "phone": "+79265554433",
+        "birth_date": "1998-03-21"
+    }
+]
