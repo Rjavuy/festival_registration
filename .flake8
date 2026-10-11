@@ -3,4 +3,7 @@ exclude =
     .git,
     .venv,
     venv,
-    __pycache__
+    __pycache__,
+    */migrations/*
+per-file-ignores =
+    festival_site/settings.py: E501

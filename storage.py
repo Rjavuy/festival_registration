@@ -3,11 +3,15 @@
 import json
 from datetime import date
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 from models import Application, Festival, Participant
 from models.festivals import find_festival_by_id
 from models.participants import find_participant_by_id
+
+FESTIVALS_FILE = "festivals.json"
+PARTICIPANTS_FILE = "participants.json"
+APPLICATIONS_FILE = "applications.json"
 
 
 def load_list(filename: Path) -> List[dict]:
@@ -138,3 +142,15 @@ def save_applications(
         }
         for application in applications
     ])
+
+
+def load_data(
+    data_dir: Path,
+) -> Tuple[List[Festival], List[Participant], List[Application]]:
+    """Загрузить фестивали, участников и заявки из каталога data_dir."""
+    festivals = load_festivals(data_dir / FESTIVALS_FILE)
+    participants = load_participants(data_dir / PARTICIPANTS_FILE)
+    applications = load_applications(
+        data_dir / APPLICATIONS_FILE, festivals, participants
+    )
+    return festivals, participants, applications

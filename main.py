@@ -25,9 +25,10 @@ from models.participants import (
     find_participants,
 )
 from storage import (
-    load_applications,
-    load_festivals,
-    load_participants,
+    APPLICATIONS_FILE,
+    FESTIVALS_FILE,
+    PARTICIPANTS_FILE,
+    load_data,
     save_applications,
     save_festivals,
     save_participants,
@@ -35,9 +36,6 @@ from storage import (
 from utils import input_date, input_int, input_text
 
 DATA_DIR = Path(__file__).parent / "data"
-FESTIVALS_FILE = DATA_DIR / "festivals.json"
-PARTICIPANTS_FILE = DATA_DIR / "participants.json"
-APPLICATIONS_FILE = DATA_DIR / "applications.json"
 
 MENU = """
 === Регистрация участников фестиваля ===
@@ -165,11 +163,7 @@ def review_application(applications: List[Application]) -> bool:
 
 def main() -> None:
     """Загрузить данные и запустить цикл меню."""
-    festivals = load_festivals(FESTIVALS_FILE)
-    participants = load_participants(PARTICIPANTS_FILE)
-    applications = load_applications(
-        APPLICATIONS_FILE, festivals, participants
-    )
+    festivals, participants, applications = load_data(DATA_DIR)
 
     while True:
         print(MENU)
@@ -220,9 +214,9 @@ def main() -> None:
             print("Нет такого пункта меню.")
 
         if changed:
-            save_festivals(FESTIVALS_FILE, festivals)
-            save_participants(PARTICIPANTS_FILE, participants)
-            save_applications(APPLICATIONS_FILE, applications)
+            save_festivals(DATA_DIR / FESTIVALS_FILE, festivals)
+            save_participants(DATA_DIR / PARTICIPANTS_FILE, participants)
+            save_applications(DATA_DIR / APPLICATIONS_FILE, applications)
 
 
 if __name__ == "__main__":
