@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if application %}
+        Заявка №{{ application.id }} – Фестивали
+    {% else %}
+        Заявка не найдена – Фестивали
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if application %}
+        <div class="card">
+            <div class="card-body">
+                <h1 class="h2 card-title">Заявка №{{ application.id }}</h1>
+                <p class="card-text">
+                    <strong>Фестиваль:</strong>
+                    <a href="{% url 'festivals:detail' application.festival.id %}">
+                        {{ application.festival.name }}</a>,
+                    {{ application.festival.festival_date|date:"d.m.Y" }}
+                </p>
+                <p class="card-text">
+                    <strong>Участник:</strong>
+                    {{ application.participant.name }},
+                    {{ application.participant.email|lower }},
+                    {{ application.participant.phone|default:"телефон не указан" }}
+                </p>
+                <p class="card-text">
+                    <strong>Статус:</strong>
+                    {% include "applications/includes/application_status.html" %}
+                </p>
+            </div>
+        </div>
+    {% else %}
+        <h1 class="text-danger">Заявка не найдена</h1>
+        <p>Заявка с указанным идентификатором отсутствует.</p>
+    {% endif %}
+
+    <a href="{% url 'applications:list' %}" class="btn btn-outline-secondary mt-3">
+        ← к списку заявок
+    </a>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Заявки – Фестивали{% endblock %}
+
+{% block content %}
+    <h1 class="mb-3">Заявки</h1>
+    <p class="text-muted">
+        Всего: {{ applications|length }}.
+        {% for status, count in statistics %}
+            {{ status }}: {{ count }}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    </p>
+
+    <div class="list-group">
+        {% for application in applications %}
+            <a
+                href="{% url 'applications:detail' application.id %}"
+                class="list-group-item list-group-item-action
+                       d-flex justify-content-between align-items-center"
+            >
+                <span>
+                    №{{ application.id }}.
+                    {{ application.participant.name }} –
+                    {{ application.festival.name|truncatechars:40 }}
+                    <small class="text-muted">
+                        ({{ application.festival.festival_date|date:"d.m.Y" }})
+                    </small>
+                </span>
+                {% include "applications/includes/application_status.html" %}
+            </a>
+        {% empty %}
+            <p>Заявки не найдены.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

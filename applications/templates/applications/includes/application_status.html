@@ -1,0 +1,9 @@
+{% if application.is_active %}
+    <span class="badge bg-success application-status application-status-active">
+        {{ application.status }}
+    </span>
+{% else %}
+    <span class="badge bg-secondary application-status application-status-inactive">
+        {{ application.status }}
+    </span>
+{% endif %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if festival %}
+        {{ festival.name }} – Фестивали
+    {% else %}
+        Фестиваль не найден – Фестивали
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if festival %}
+        <div class="card festival-card mb-3">
+            <div class="card-body">
+                <h1 class="h2 card-title">{{ festival.name }}</h1>
+                <p class="card-text">
+                    <strong>Дата проведения:</strong>
+                    {{ festival.festival_date|date:"d.m.Y" }}
+                </p>
+                <p class="card-text">
+                    <strong>Мест:</strong>
+                    {{ festival.max_places }}, занято {{ taken }}
+                </p>
+                <p class="card-text">
+                    Статус на сегодня:
+                    {% if can_apply %}
+                        <span class="badge bg-success">можно подать заявку</span>
+                    {% else %}
+                        <span class="badge bg-danger">приём заявок закрыт</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <h2 class="h5">Заявки на фестиваль ({{ festival_applications|length }})</h2>
+        <ul class="list-group mb-3">
+            {% for application in festival_applications %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <a href="{% url 'applications:detail' application.id %}">
+                        {{ application.participant.name }}
+                    </a>
+                    {% include "applications/includes/application_status.html" %}
+                </li>
+            {% empty %}
+                <li class="list-group-item text-muted">Заявок нет</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <h1 class="text-danger">Фестиваль не найден</h1>
+        <p>Фестиваль с указанным идентификатором отсутствует.</p>
+    {% endif %}
+
+    <a href="{% url 'festivals:list' %}" class="btn btn-outline-secondary mt-3">
+        ← к списку фестивалей
+    </a>
+{% endblock %}

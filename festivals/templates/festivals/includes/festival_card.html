@@ -1,0 +1,26 @@
+<article class="card festival-card mb-3{% if not item.is_open %} festival-card-closed{% endif %}">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="h5 card-title">
+                {{ item.festival.name|default:"Без названия" }}
+            </h2>
+            <p class="card-text text-muted mb-2">
+                {{ item.festival.festival_date|date:"d.m.Y" }},
+                свободно {{ item.free }} из {{ item.festival.max_places }}
+            </p>
+            <a
+                href="{% url 'festivals:detail' item.festival.id %}"
+                class="btn btn-sm btn-primary"
+            >
+                Подробнее
+            </a>
+        </div>
+        {% if not item.is_open %}
+            <span class="badge bg-secondary">завершён</span>
+        {% elif not item.has_places %}
+            <span class="badge bg-danger">мест нет</span>
+        {% else %}
+            <span class="badge bg-success">приём заявок</span>
+        {% endif %}
+    </div>
+</article>

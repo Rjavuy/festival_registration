@@ -1,0 +1,52 @@
+body {
+    min-height: 100vh;
+    background-color: #f5f7fb;
+}
+
+.site-header {
+    padding: 0.75rem 0;
+    background: linear-gradient(90deg, #0d6efd, #6f42c1);
+}
+
+.site-logo {
+    width: 48px;
+    height: auto;
+}
+
+.site-nav .nav-link {
+    color: #fff;
+    font-weight: 500;
+}
+
+.site-nav .nav-link:hover {
+    color: #ffc107;
+}
+
+.festival-card {
+    border-left: 4px solid #0d6efd;
+    border-radius: 8px;
+    transition: box-shadow 0.2s;
+}
+
+.festival-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.15);
+}
+
+.festival-card-closed {
+    border-left-color: #6c757d;
+    opacity: 0.8;
+}
+
+.application-status {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.application-status-inactive {
+    text-decoration: line-through;
+}
+
+.site-footer {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
